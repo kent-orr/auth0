@@ -13,6 +13,7 @@ has_auth_code <- function(params, state) {
   is.null(params$error) && !is.null(params$code) && params$state == state
 }
 
+
 auth0_server_verify <- function(session, app, api, state) {
 
   u_search <- session[["clientData"]]$url_search
