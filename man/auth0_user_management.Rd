@@ -4,7 +4,12 @@
 \alias{auth0_user_management}
 \title{Manage Auth0 Users}
 \usage{
-auth0_user_management(user_id, action = "get", body = list())
+auth0_user_management(
+  user_id,
+  action = "get",
+  body = list(),
+  config_file = NULL
+)
 }
 \arguments{
 \item{user_id}{Character string, the ID of the user you want to manage.}
@@ -20,17 +25,4 @@ A list representing the parsed response from the Auth0 API.
 \description{
 This function provides an interface for managing users in Auth0. It supports
 actions for getting and updating user details.
-}
-\examples{
-\dontrun{
-  user_id <- "user_auth0_id"
-  action <- "get"
-  auth0_user_management(user_id, action)
-
-  user_id <- "user_auth0_id"
-  action <- "update"
-  body <- list(user_metadata = list(theme='dark'))
-  auth0_user_management(user_id, action, body)
-}
-
 }

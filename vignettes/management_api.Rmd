@@ -20,25 +20,9 @@ library(auth0)
 
 The [Auth0 Management API](https://auth0.com/docs/manage-users/user-accounts/manage-users-using-the-management-api) allows interacting with users. The first step is to create a [Machine-to-Machine]()https://auth0.com/docs/get-started/auth0-overview/create-applications/machine-to-machine-apps application which will have its own client and secret. This client and secret will be the credentials used to retrieave OAuth tokens and interact with the management API. 
 
-The _auth0.yml will need to be edited to contain the machine to machine credentials:
-
-```{yaml}
-name: My App
-remote_url: ''
-auth0_config:
-  api_url: !expr paste0('https://', Sys.getenv('AUTH0_USER'), '.us.auth0.com')
-  credentials:
-    key: !expr Sys.getenv("AUTH0_KEY")
-    secret: !expr Sys.getenv("AUTH0_SECRET")
-  management:
-    key: !expr Sys.getenv("AUTH0_MGMT_KEY")
-    secret: !expr Sys.getenv("AUTH0_MGMT_SECRET")
-```
-
-From here, you can use the user_id from the session$userData object to call and modify additional information about a user. 
+After logging in with the auth0, you can use the user_id from the session$userData object to call and modify additional information about a user. 
 
 ```{r, eval=FALSE}
-
 user_id = session$userData$sub
 auth0_user_management(user_id, "get")
 auth0_user_management(user_id, "update", user_metadata = list(config = list(theme = "dark", last_tab = "settings")))

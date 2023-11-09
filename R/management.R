@@ -28,8 +28,8 @@ auth0_api_token <- function(config_file) {
                         , encode = "form"
                         , body  = list(
                           grant_type = "client_credentials"
-                          , client_id = config$auth0_config$management$key
-                          , client_secret = config$auth0_config$management$secret
+                          , client_id = config$auth0_config$credentials$key
+                          , client_secret = config$auth0_config$credentials$secret
                           , audience = paste0(config$auth0_config$api_url, "/api/v2/"))
   )
 
@@ -45,7 +45,7 @@ auth0_api_token <- function(config_file) {
 #' actions for getting and updating user details.
 #'
 #' @param user_id Character string, the ID of the user you want to manage.
-#' @param action Character string, the action to be performed; either 'get' or 'update'.
+#' @param action Character string, the action to be performed; either 'get', 'update', 'create', or 'delete'
 #'               Default is 'get'.
 #' @param body List, additional body parameters for the 'update' action.
 #'
@@ -53,28 +53,24 @@ auth0_api_token <- function(config_file) {
 #'
 #' @examples
 #' \dontrun{
-#'   user_id <- "user_auth0_id"
-#'   action <- "get"
 #'   auth0_user_management(user_id, action)
 #'
-#'   user_id <- "user_auth0_id"
-#'   action <- "update"
 #'   body <- list(user_metadata = list(theme='dark'))
-#'   auth0_user_management(user_id, action, body)
+#'   auth0_user_management(user_id, "update, body)
 #' }
 #'
 #' @importFrom httr GET PATCH add_headers
 #' @importFrom jsonlite fromJSON
 #' @export
-auth0_user_management <- function(user_id, action = "get", body = list()) {
-  config = auth0_config()
-  token = auth0_api_token()
+auth0_user_management <- function(user_id, action = "get", body = list(), config_file = NULL) {
+  config = if (is.null(config_file)) do.call(auth0_config, list()) else auth0_config(config_file)
+  token = if (is.null(config_file)) do.call(auth0_api_token, list()) else auth0_api_token(config_file)
   if (action == "get") {
     response = GET(paste0(config$auth0_config$api_url, '/api/v2/users/', user_id)
                    , add_headers(authorization = paste("Bearer", token))
                    , encode = "json"
     )
-    stopifnot("non 200 response" = response$status_code == 200)
+    if (response$status_code != 200) {cat("Error", response$status_code, "\n")}
     response_parsed = response$content |> rawToChar() |> jsonlite::fromJSON()
   }
   if (action == "update") {
@@ -82,9 +78,30 @@ auth0_user_management <- function(user_id, action = "get", body = list()) {
                      , add_headers(authorization = paste("Bearer", token))
                      , body = body
                      , encode = "json")
+    if (response$status_code != 200) {cat("Error", response$status_code, "\n")}
     response_parsed = response$content |> rawToChar() |> jsonlite::fromJSON()
-    stopifnot("non 200 response" = response$status_code == 200)
   }
+
+  if (action == "create") {
+    response = POST(paste0(config$auth0_config$api_url, '/api/v2/users/')
+                    , add_headers(authorization = paste("Bearer", token))
+                    , body = body
+                    , encode = "json"
+                    )
+    if (response$status_code != 201) {cat("Error", response$status_code, "\n")}
+  }
+
+  if (action == "delete") {
+    response = DELETE(paste0(config$auth0_config$api_url, '/api/v2/users/', user_id)
+                      , add_headers(authorization = paste("Bearer", token))
+                      , encode = "json"
+    )
+    if (response$status_code != 204) {cat("Error", response$status_code, "\n")}
+
+  }
+
+  response_parsed = response$content |> rawToChar() |> jsonlite::fromJSON()
+  response$content |> rawToChar()
 
   return(response_parsed)
 }
